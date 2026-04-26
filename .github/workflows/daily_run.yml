@@ -28,4 +28,4 @@ jobs:
       env:
         # Secrets에 저장한 웹훅 URL을 환경변수로 불러옵니다.
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      run: python run.py
+      run: python ohaasa_webhook.py
