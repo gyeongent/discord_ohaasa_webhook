@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-import datetime
+from datetime import datetime, timedelta, timezone
 import os
 
 # 1. 설정
@@ -48,13 +48,17 @@ def get_fortune_data():
     except Exception as e:
         print(f"데이터 추출 중 에러 발생: {e}")
         return None
+        
 
+        
 def send_to_discord(fortunes):
     if not fortunes:
-        print("전송할 데이터가 없습니다.")
         return
 
-    today = datetime.date.today().strftime("%Y년 %m월 %d일")
+    # 💡 한국 시간(KST, UTC+9) 설정
+    kst = timezone(timedelta(hours=9))
+    now = datetime.now(kst)
+    today_str = now.strftime("%Y년 %m월 %d일")
     
     description = ""
     for f in fortunes:
@@ -63,7 +67,7 @@ def send_to_discord(fortunes):
 
     payload = {
         "embeds": [{
-            "title": f"✨ {today} 오하아사 별자리 운세 순위",
+            "title": f"✨ {today_str} 오하아사 별자리 운세 순위",
             "url": TARGET_URL,
             "description": description,
             "color": 16766720,
