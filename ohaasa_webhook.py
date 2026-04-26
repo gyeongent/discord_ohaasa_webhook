@@ -1,10 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 import datetime
+import os
 
 # 1. 설정
 TARGET_URL = "https://www.tv-asahi.co.jp/goodmorning/uranai/"
-WEBHOOK_URL = "https://discord.com/api/webhooks/1497877436786937986/CKI2QuNBt4XFkWqEc9hvZwEu4bylKxjbtenS3ruHxFzX-4z5X37_eaa612SmpYaPJ-gC" # 생성한 웹훅 주소 입력
+WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
 
 # 별자리 한글 번역 딕셔너리
 SIGN_TRANSLATE = {
