@@ -63,7 +63,7 @@ async function run() {
         // 디스코드 전송 로직
         const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
         if (data.list.length > 0 && WEBHOOK_URL) {
-            const description = data.list.map(i => `**${i.rank}: ${i.sign}**\n`).join('\n');
+            const description = data.list.map(i => `**${i.rank}:** ${i.sign}`).join('\n');
             
             await axios.post(WEBHOOK_URL, {
                 embeds: [{
