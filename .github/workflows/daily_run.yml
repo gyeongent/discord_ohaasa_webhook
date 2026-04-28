@@ -24,4 +24,4 @@ jobs:
     - name: Run script
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      run: python run.py
+      run: python ohaasa_webhook.py
