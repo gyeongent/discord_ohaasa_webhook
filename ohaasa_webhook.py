@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, timezone
 import os
+import re
 
 # --- [설정 영역] ---
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK")
@@ -9,63 +10,65 @@ TARGET_URL = "https://www.asahi.co.jp/ohaasa/week/horoscope/index.html"
 
 SIGN_TRANSLATE = {
     "うお座": "물고기자리", "やぎ座": "염소자리", "さそり座": "전갈자리",
-    "おとめ座": "처녀자리", "おうし座": "황소자리", "かに座": "게자리",
-    "おひつじ座": "양자리", "みずが메座": "물병자리", "みず가め座": "물병자리", "みずがめ座": "물병자리",
-    "いて座": "사수자리", "てんびん座": "천칭자리", "ふたご座": "쌍둥이자리", "しし座": "사자자리"
+    "おとめ座": "처녀자리", "おう시座": "황소자리", "おうし座": "황소자리", "かに座": "게자리",
+    "おひつじ座": "양자리", "みずがめ座": "물병자리", "いて座": "사수자리",
+    "てんびん座": "천칭자리", "ふたご座": "쌍둥이자리", "しし座": "사자자리"
 }
 
 def get_fortune_data():
-    # 💡 브라우저처럼 보이게 헤더 강화
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7,ja;q=0.6",
-        "Referer": "https://www.asahi.co.jp/ohaasa/",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "ja-JP,ja;q=0.9",
     }
     
     try:
-        # 세션을 사용하여 접속 유지
-        session = requests.Session()
-        response = session.get(TARGET_URL, headers=headers, timeout=20)
+        # 💡 모바일 페이지 레이아웃 시도 (차단 우회 확률 높음)
+        response = requests.get(TARGET_URL, headers=headers, timeout=20)
         response.encoding = 'utf-8'
         
-        if response.status_code != 200:
-            print(f"로그: 접속 실패 코드 {response.status_code}")
+        if "403 Forbidden" in response.text or response.status_code == 403:
+            print("로그: 서버에서 봇 접속을 차단했습니다(403).")
             return None
 
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # 1차 시도: 제공된 클래스명 기반
-        items = soup.select('.oa_horoscope_list li')
-        
-        # 2차 시도: 클래스명이 rank로 시작하는 모든 li 탐색
-        if not items:
-            items = soup.find_all('li', class_=lambda x: x and 'rank' in x)
-            
-        print(f"로그: 추출된 원본 아이템 개수 = {len(items)}")
+        # 💡 랭킹 박스 자체를 먼저 찾고 그 안의 li를 검색
+        container = soup.find('ul', class_='oa_horoscope_list') or soup.find('div', class_='horoscope_box')
+        if container:
+            items = container.find_all('li')
+        else:
+            # 컨테이너가 없으면 모든 li 중 rank 클래스가 있는 것 검색
+            items = soup.find_all('li', class_=re.compile(r'rank'))
+
+        print(f"로그: 최종 시도 아이템 개수 = {len(items)}")
 
         results = []
         for item in items:
-            # 순위 찾기
-            rank_el = item.select_one('.horo_rank') or item.find(class_='horo_rank')
-            if not rank_el: continue
-            rank = rank_el.text.strip()
+            # 순위 (텍스트가 없으면 클래스명에서 숫자 추출)
+            rank_el = item.find(class_='horo_rank')
+            if rank_el:
+                rank = rank_el.text.strip()
+            else:
+                class_names = "".join(item.get('class', []))
+                match = re.search(r'rank(\d+)', class_names)
+                rank = match.group(1) if match else "0"
 
-            # 별자리 이름 (오타 sapn 및 span 대응)
-            name_tag = item.select_one('.horo_name') or item.select_one('sapn') or item.select_one('span:not(.horo_rank)')
+            # 별자리 이름
+            name_tag = item.find(class_='horo_name') or item.find('sapn') or item.find('span')
             if not name_tag: continue
             raw_sign = name_tag.text.strip()
             
-            # 운세 내용
-            detail_el = item.select_one('.horo_txt') or item.find('dd')
-            detail = detail_el.text.strip().replace('\t', ' ') if detail_el else ""
+            # 내용
+            detail_el = item.find(class_='horo_txt') or item.find('dd')
+            detail = detail_el.text.strip() if detail_el else ""
 
-            results.append({
-                "rank": rank,
-                "sign": SIGN_TRANSLATE.get(raw_sign, raw_sign),
-                "detail": detail
-            })
-            
+            if rank != "0":
+                results.append({
+                    "rank": rank,
+                    "sign": SIGN_TRANSLATE.get(raw_sign, raw_sign),
+                    "detail": detail
+                })
         return results
     except Exception as e:
         print(f"로그: 에러 발생 = {e}")
@@ -73,26 +76,28 @@ def get_fortune_data():
 
 def send_to_discord(fortunes):
     if not WEBHOOK_URL:
-        print("로그: 웹훅 URL이 없습니다.")
+        print("로그: 웹훅 URL 없음")
         return
     if not fortunes:
-        print("로그: 보낼 데이터가 비어있습니다.")
+        # 💡 실패 시 관리자에게 알림을 주도록 설정 (선택 사항)
+        print("로그: 추출 실패 - 사이트 구조 변경 혹은 차단됨")
         return
 
     kst = timezone(timedelta(hours=9))
     today_str = datetime.now(kst).strftime("%Y년 %m월 %d일")
     
-    # 순위 정렬
-    fortunes.sort(key=lambda x: int(x['rank']) if x['rank'].isdigit() else 99)
+    # 중복 제거 및 정렬
+    unique_fortunes = {f['rank']: f for f in fortunes}.values()
+    sorted_fortunes = sorted(unique_fortunes, key=lambda x: int(x['rank']))
 
     embed = {
-        "title": f"☀️ {today_str} 오하아사 별자리 운세",
-        "description": f"아사히 방송 '굿!모닝' 운세입니다.\n[공식 페이지]({TARGET_URL})",
+        "title": f"☀️ {today_str} 오하아사 운세",
+        "url": TARGET_URL,
         "color": 16766720,
         "fields": []
     }
     
-    for f in fortunes[:12]:
+    for f in sorted_fortunes:
         medal = "🥇" if f['rank'] == '1' else "🥈" if f['rank'] == '2' else "🥉" if f['rank'] == '3' else "🔹"
         embed["fields"].append({
             "name": f"{medal} {f['rank']}위: {f['sign']}",
@@ -100,9 +105,8 @@ def send_to_discord(fortunes):
             "inline": False
         })
 
-    payload = {"embeds": [embed]}
-    res = requests.post(WEBHOOK_URL, json=payload)
-    print(f"로그: 디스코드 전송 결과 = {res.status_code}")
+    requests.post(WEBHOOK_URL, json={"embeds": [embed]})
+    print("로그: 디스코드 전송 시도 완료")
 
 if __name__ == "__main__":
     data = get_fortune_data()
