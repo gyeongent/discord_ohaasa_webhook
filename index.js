@@ -65,7 +65,7 @@ async function deploy() {
 }
 
 async function sendDiscord(dateInfo, list) {
-  const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+  const WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
   if (!WEBHOOK_URL) return;
 
   const payload = {
