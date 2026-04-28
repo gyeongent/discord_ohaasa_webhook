@@ -87,4 +87,23 @@ def send_to_discord(fortunes):
 
     embed = {
         "title": f"☀️ {today_str} 오하아사 별자리 운세",
-        "description": f"아사히 방송 '굿!모닝' 운세입니다.\n[공
+        "description": f"아사히 방송 '굿!모닝' 운세입니다.\n[공식 페이지]({TARGET_URL})",
+        "color": 16766720,
+        "fields": []
+    }
+    
+    for f in fortunes[:12]:
+        medal = "🥇" if f['rank'] == '1' else "🥈" if f['rank'] == '2' else "🥉" if f['rank'] == '3' else "🔹"
+        embed["fields"].append({
+            "name": f"{medal} {f['rank']}위: {f['sign']}",
+            "value": f"{f['detail']}",
+            "inline": False
+        })
+
+    payload = {"embeds": [embed]}
+    res = requests.post(WEBHOOK_URL, json=payload)
+    print(f"로그: 디스코드 전송 결과 = {res.status_code}")
+
+if __name__ == "__main__":
+    data = get_fortune_data()
+    send_to_discord(data)
