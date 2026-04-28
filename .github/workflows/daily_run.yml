@@ -2,23 +2,20 @@ name: Daily Ohaasa Webhook
 
 on:
   schedule:
-    # cron 설정: 분 시 일 월 요일 (UTC 기준)
-    # 아침 7시에 실행하려면 22:00 UTC로 설정.
-    - cron: '0 22 * * *'
-  workflow_dispatch: # 직접 버튼을 눌러서 실행해볼 수 있게 합니다.
+    - cron: '30 21 * * *' # 한국 시간 오전 6시 30분
+  workflow_dispatch:
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4 # v3에서 업그레이드
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5 # v4에서 업그레이드
       with:
-        python-version: '3.9'
+        python-version: '3.11'
 
     - name: Install dependencies
       run: |
@@ -27,4 +24,4 @@ jobs:
     - name: Run script
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      run: python ohaasa_webhook.py
+      run: python run.py
