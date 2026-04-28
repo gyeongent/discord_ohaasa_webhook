@@ -22,12 +22,10 @@ def get_fortune_data():
     }
     
     try:
-        # TARGET_URL을 함수 내부에서도 인식할 수 있도록 처리
         response = requests.get(TARGET_URL, headers=headers)
         response.encoding = 'utf-8'
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # 제공해주신 rank-box 구조 기반 추출
         rank_list = soup.select('.rank-box li')
         
         if not rank_list:
@@ -55,7 +53,7 @@ def send_to_discord(fortunes):
     if not fortunes:
         return
 
-    # 💡 한국 시간(KST, UTC+9) 설정
+    # 한국 시간(KST, UTC+9) 설정
     kst = timezone(timedelta(hours=9))
     now = datetime.now(kst)
     today_str = now.strftime("%Y년 %m월 %d일")
