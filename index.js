@@ -49,7 +49,6 @@ async function run() {
                         results.push({
                             rank: index + 1,
                             sign: signMap[rawSign] || rawSign,
-                            content: "행운의 아이템 등 상세 정보는 사이트를 확인하세요!"
                         });
                     }
                 });
