@@ -88,7 +88,7 @@ async function run() {
 }
 
 async function sendDiscord(fortunes, url, isWeekend, date) {
-    const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+    const WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
     if (!WEBHOOK_URL) return;
 
     const todayTag = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
