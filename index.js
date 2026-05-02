@@ -91,7 +91,7 @@ async function sendDiscord(fortunes, url, isWeekend, date) {
     const WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
     
     if (!WEBHOOK_URL) {
-        console.log("⚠️ [경고] DISCORD_WEBHOOK_URL 환경변수가 없습니다.");
+        console.log("⚠️ [경고] DISCORD_WEBHOOK 환경변수가 없습니다.");
         return;
     }
 
@@ -101,7 +101,7 @@ async function sendDiscord(fortunes, url, isWeekend, date) {
     let description = "";
     fortunes.slice(0, 12).forEach(f => {
         const medal = f.rank === 1 ? "🥇" : f.rank === 2 ? "🥈" : f.rank === 3 ? "🥉" : "🔹";
-        description += `${medal} **${f.rank}위**: ${f.sign}\n${isWeekend ? '' : `> ${f.content}\n`}\n`;
+        description += `${medal} **${f.rank}위**: ${f.sign}\n${isWeekend ? '' : `> ${f.content}`}\n`;
     });
 
     try {
