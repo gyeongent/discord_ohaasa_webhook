@@ -88,7 +88,7 @@ async function run() {
 }
 
 async function sendDiscord(fortunes, url, isWeekend, date) {
-    const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+    const WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
     
     if (!WEBHOOK_URL) {
         console.log("⚠️ [경고] DISCORD_WEBHOOK_URL 환경변수가 없습니다.");
