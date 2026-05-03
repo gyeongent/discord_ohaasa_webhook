@@ -101,7 +101,7 @@ async function sendDiscord(fortunes, url, isWeekend, date) {
     let description = "";
     fortunes.slice(0, 12).forEach(f => {
         const medal = f.rank === 1 ? "🥇" : f.rank === 2 ? "🥈" : f.rank === 3 ? "🥉" : "🔹";
-        description += `${medal} **${f.rank}위**: ${f.sign}\n${isWeekend ? '' : `> ${f.content}`}\n`;
+        description += `${medal} **${f.rank}위**: ${f.sign}\n${isWeekend ? '' : `> ${f.content}`}`;
     });
 
     try {
