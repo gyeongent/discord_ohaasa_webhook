@@ -48,7 +48,6 @@ async function run() {
                         results.push({
                             rank: index + 1,
                             sign: signMap[rawSign] || rawSign,
-                            content: "행운의 아이템 등 상세 정보는 사이트를 확인하세요!"
                         });
                     }
                 });
@@ -62,7 +61,6 @@ async function run() {
                         results.push({
                             rank: parseInt(rank),
                             sign: signMap[rawSign] || rawSign,
-                            content: content.trim().replace(/\s+/g, ' ')
                         });
                     }
                 });
@@ -101,7 +99,7 @@ async function sendDiscord(fortunes, url, isWeekend, date) {
     let description = "";
     fortunes.slice(0, 12).forEach(f => {
         const medal = f.rank === 1 ? "🥇" : f.rank === 2 ? "🥈" : f.rank === 3 ? "🥉" : "🔹";
-        description += `${medal} **${f.rank}위**: ${f.sign}\n${isWeekend ? '' : `> ${f.content}`}`;
+        description += `${medal} **${f.rank}위**: ${f.sign}\n${isWeekend ? '' : ``}`;
     });
 
     try {
